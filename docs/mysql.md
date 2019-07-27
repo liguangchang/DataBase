@@ -84,9 +84,19 @@ show profile all for query query_id  ##不起作用啊
 
 ```
 
+### 5.索引
 
+### 6.视图
 
-### 10.mysql练习
+### 7.触发器
+
+### 8.缓存、导出
+
+### 9.分库分表
+
+### 10.mycat
+
+### 11.mysql练习
 
 ```mysql
 #查询语句练习
@@ -592,7 +602,119 @@ select st.s_id,st.s_name,c.c_name,sc.s_score from student st
 left join score sc on sc.s_id=st.s_id
 left join course c on c.c_id =sc.c_id
 order by st.s_id,c.c_name;
+# 36、查询任何一门课程成绩在70分以上的姓名、课程名称和分数
+select stu.s_name ,c.c_name,sc.s_score from Student stu
+  right  join Score sc on sc.s_id=stu.s_id
+  right  join Course c on c.c_id=sc.c_id where  sc.s_score>=70;
+
+select a.s_name,b.c_name,c.s_score from course b left join score c on b.c_id = c.c_id
+				left join student a on a.s_id=c.s_id where c.s_score>=70;
+
+# 37、查询不及格的课程
+select distinct c.c_name from Course c join Score sc
+    on sc.c_id=c.c_id and sc.s_score<60;
+
+select c.c_name from Course c where c.c_id in(
+select sc.c_id from Score sc where sc.s_score<60);
+
+select c.c_name from Course c join Score sc
+    on c.c_id=sc.c_id and sc.s_score<60 group by c.c_name;
 
 
+# 38、查询课程编号为01且课程成绩在80分以上的学生的学号和姓名
+select stu.s_id,stu.s_name from Student stu
+    join Score sc on sc.s_id=stu.s_id and sc.c_id='01' and sc.s_score>=80 ;
+
+# 39、求每门课程的学生人数
+select c.c_name,count(1) from Course c join Score sc
+    on sc.c_id=c.c_id group by c.c_name  ;
+
+select count(1) from Score GROUP BY c_id;
+
+# 40、查询选修"张三"老师所授课程的学生中，成绩最高的学生信息及其成绩
+
+select stu.* from Student stu join Score sc on sc.s_id=stu.s_id join
+(select max(ss.s_score) sa from (
+select sc.s_score,sc.s_id from Score sc join Course c
+    on c.c_id=sc.c_id
+    join Teacher t on t.t_id=c.t_id and t.t_name='张三'
+group by sc.s_id,sc.s_score) ss) sss on sss.sa=sc.s_score;
+
+# 41、查询不同课程成绩相同的学生的学生编号、课程编号、学生成绩
+
+select DISTINCT b.s_id,b.c_id,b.s_score
+    from score a,score b
+        where a.c_id != b.c_id and a.s_score = b.s_score;
+
+select stu.s_id,sc.c_id,sc.s_score from Student stu
+    join Score sc on sc.s_id=stu.s_id
+    join Course c on c.c_id=sc.c_id
+    where (
+        select count(1) from Student stu1
+            join Score sc1 on sc1.s_id=stu1.s_id
+            join Course c1 on c1.c_id=sc1.c_id where c.c_id!=c1.c_id and sc.s_score=sc1.s_score
+              )>1;
+
+select st.s_id,st.s_name,sc.c_id,sc.s_score from student st
+left join score sc on sc.s_id=st.s_id
+left join course c on c.c_id=sc.c_id
+where (
+select count(1) from student st2
+left join score sc2 on sc2.s_id=st2.s_id
+left join course c2 on c2.c_id=sc2.c_id
+where sc.s_score=sc2.s_score and c.c_id!=c2.c_id
+)>1;
+
+#  42、查询每门功成绩最好的前两名
+select a.* from (select st.s_id,st.s_name,c.c_name,sc.s_score from student st
+left join score sc on sc.s_id=st.s_id
+inner join course c on c.c_id=sc.c_id and c.c_id='01'
+order by sc.s_score desc limit 0,2) a
+union all
+select b.* from (select st.s_id,st.s_name,c.c_name,sc.s_score from student st
+left join score sc on sc.s_id=st.s_id
+inner join course c on c.c_id=sc.c_id and c.c_id='02'
+order by sc.s_score desc limit 0,2) b
+union all
+select cc.* from (select st.s_id,st.s_name,c.c_name,sc.s_score from student st
+left join score sc on sc.s_id=st.s_id
+inner join course c on c.c_id=sc.c_id and c.c_id='03'
+order by sc.s_score desc limit 0,2) cc
+union all
+select d.* from (select st.s_id,st.s_name,c.c_name,sc.s_score from student st
+left join score sc on sc.s_id=st.s_id
+inner join course c on c.c_id=sc.c_id and c.c_id='04'
+order by sc.s_score desc limit 0,2) d;
+
+ select a.s_id,a.c_id,a.s_score from score a
+    where (select COUNT(1) from score b
+     where b.c_id=a.c_id and b.s_score>=a.s_score)<=2 order by a.c_id;
+
+# 43、统计每门课程的学生选修人数（超过5人的课程才统计）。要求输出课程号和选修人数，查询结果按人数降序排列，若人数相同，按课程号升序排列
+select sc.c_id,count(c_id) resu from Score sc group by sc.c_id having resu>5 order by resu desc ,c_id asc ;
+
+select c_id,count(*) as total from score GROUP BY c_id HAVING total>5 ORDER BY total,c_id ASC;
+
+#  44、检索至少选修两门课程的学生学号
+select sc.s_id from Score sc group by sc.s_id having count(sc.s_id)>=2;
+
+select s_id,count(*) as sel from score GROUP BY s_id HAVING sel>=2
+
+# 45、查询选修了全部课程的学生信息
+select stu.* from Student stu  where stu.s_id in (
+            select sc.s_id from Score sc group by sc.s_id having count(s_id)=(
+                select count(1) from Course
+                )
+);
+
+# 46、查询各学生的年龄
+select stu.s_name,year(now())-year(stu.s_birth) from Student stu;
+
+select s_name,(DATE_FORMAT(NOW(),'%Y')-DATE_FORMAT(s_birth,'%Y') -
+				(case when DATE_FORMAT(NOW(),'%m%d')>DATE_FORMAT(s_birth,'%m%d') then 0 else 1 end)) as age
+		from student;
+
+
+# 47、查询本周过生日的学生
 ```
 
