@@ -716,5 +716,21 @@ select s_name,(DATE_FORMAT(NOW(),'%Y')-DATE_FORMAT(s_birth,'%Y') -
 
 
 # 47、查询本周过生日的学生
+
+
+# 48、查询下周过生日的学生
+select st.* from student st
+	where week(now())+1=week(date_format(st.s_birth,'%Y%m%d'));
+
+# 49、查询本月过生日的学生
+select st.* from student st
+	where month(now())=month(date_format(st.s_birth,'%Y%m%d'));
+
+# 50、查询下月过生日的学生
+ -- 注意:当 当前月为12时,用month(now())+1为13而不是1,可用timestampadd()函数或mod取模
+select st.* from student st
+	where  month(timestampadd(month,1,now()))=month(date_format(st.s_birth,'%Y%m%d'));
+-- 或
+select st.* from student st where (month(now()) + 1) mod 12 = month(date_format(st.s_birth,'%Y%m%d'));
 ```
 
