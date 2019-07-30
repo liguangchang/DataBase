@@ -74,9 +74,36 @@ show profile all for query query_id  ##不起作用啊
 
 ### 3.日期处理
 
+| 类型      | 大小 | 范围                                    | 格式                | 用途                    |
+| --------- | ---- | --------------------------------------- | ------------------- | ----------------------- |
+| DATE      | 3    | 1000-01-01/9999-12-31                   | YYYY-MM-DD          | 日期值                  |
+| TIME      | 3    | '-838:59:59'/'838:59:59'                | HH:MM:SS            | 时间值                  |
+| YEAR      | 1    | 1901/2155                               | YYYY                | 年份值                  |
+| DATETIME  | 8    | 1000-01-01 00:00:00/9999-12-31 23:59:59 | YYYY-MM-DD HH:MM:SS | 混合日期和时间值        |
+| TIMESTAMP | 4    | 1970-01-01 00:00:00/2038                | YYYY-MM-DD HH:MM:SS | 混合日期和时间值 时间戳 |
+
+
+
+```
+select date_format('2008-08-08 22:23:01', '%Y%m%d%H%i%s');
+20080808222301 
+select str_to_date('08/09/2008', '%m/%d/%Y'); -- 2008-08-09
+select str_to_date('08/09/08' , '%m/%d/%y'); -- 2008-08-09
+select str_to_date('08.09.2008', '%m.%d.%Y'); -- 2008-08-09
+select str_to_date('08:09:30', '%h:%i:%s'); -- 08:09:30
+select str_to_date('08.09.2008 08:09:30', '%m.%d.%Y %h:%i:%s'); -- 2008-08-09 08:09:30
 ```
 
 ```
+MySQL datediff(date1,date2)：两个日期相减 date1 - date2，返回天数。
+select datediff('2008-08-08', '2008-08-01'); -- 7
+select datediff('2008-08-01', '2008-08-08'); -- -7
+MySQL timediff(time1,time2)：两个日期相减 time1 - time2，返回 time 差值。
+select timediff('2008-08-08 08:08:08', '2008-08-08 00:00:00'); -- 08:08:08
+select timediff('08:08:08', '00:00:00'); -- 08:08:08
+```
+
+
 
 ### 4.字符串处理
 
@@ -86,17 +113,129 @@ show profile all for query query_id  ##不起作用啊
 
 ### 5.索引
 
+普通索引
+
+唯一索引 primary key 唯一 可以为null
+
+主键索引 值唯一 不能为null
+
+组合索引 多列
+
+全文索引 fulltext 
+
+```
+索引也是一张表，该表保存了主键与索引字段，并指向实体表的记录，滥用索引会影响更新表的速度
+```
+
+#### 创建索引
+
+```
+create index indexName on tableName(colume(length));
+alter table tableName add indx indexName(columeName)
+创建表时直接指定 表级别 index [indxName] (colume(length))
+#唯一索引
+CREATE UNIQUE INDEX indexName ON mytable(username(length)) 
+```
+
+#### 删除索引
+
+```
+alter table table_name drop index index_name;
+```
+
 ### 6.视图
+
+```
+虚拟表，基于sql语句的结果集的可视化表
+视图总是查询最新的数据，每次会重建数据
+```
+
+##### 创建视图
+
+```
+create view viewName as
+select colume_name(s) from tabel_name where condition
+```
+
+##### 更新视图
+
+```
+create or replace view as 
+select *** from table where condition
+```
+
+##### 删除视图
+
+```
+drop view view_name
+```
 
 ### 7.触发器
 
-### 8.缓存、导出
+```
+某个事件触发某个操作，包括 insert update delete
+```
 
-### 9.分库分表
+##### 创建触发器
 
-### 10.mycat
+```
+create trigger trigger_name before|after 触发事件 
+	on table_name for each row
+		begin
+    	执行语句列表
+    end
+```
 
-### 11.mysql练习
+##### 查看触发器
+
+```
+show triggers;
+```
+
+##### 删除触发器
+
+```
+drop trigger trigger_name;
+```
+
+### 8.存储过程
+
+```
+存储过程是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象
+是为了完成特定功能的语句集，是语言层面的代码封装于重用
+可封装隐藏逻辑
+可以接受参数
+用于数据检验
+```
+
+##### 创建存储过程
+
+```
+声明分隔符
+delimiter //
+create procedure procedure_name
+begin
+***
+end
+delimiter;
+```
+
+##### 存储过程操作
+
+```
+showcreate procedure database.procedure_name
+alter procedure
+drop propcedure
+
+```
+
+### 9.缓存、导出
+
+### 10.分库分表
+
+### 11.mycat
+
+### 12.mysql练习
 
 ```mysql
 #查询语句练习
